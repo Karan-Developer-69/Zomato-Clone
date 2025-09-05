@@ -7,7 +7,7 @@ const cors = require('cors');
 
 const app = express();
 app.use(cors({
-    origin: 'http://localhost:5173', // Adjust this to your frontend's origin
+    origin: process.env.FRONTEND_URL, // Adjust this to your frontend's origin
     credentials: true, // Allow cookies to be sent
 }));
 app.use(cookieParser());
