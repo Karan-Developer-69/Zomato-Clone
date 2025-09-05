@@ -1,0 +1,178 @@
+@import './vars.css';
+
+
+
+html, body {
+    overflow-x: hidden; /* avoid page horizontal scroll on mobile */
+    -webkit-overflow-scrolling: touch;
+}
+
+.profile-container {
+    
+    padding: 20px;
+    background-color: var(--bg);
+    color: var(--text);
+    min-height: 100%;
+    max-width: 100%;
+    overflow-x: hidden; /* critical to avoid horizontal overflow */
+}
+
+/* Header card */
+.profile-header {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: grid;
+    grid-template-areas:
+        "avatar info"
+        "stats stats";
+    grid-template-columns: auto 1fr;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+/* Avatar: fluid sizing with clamp to avoid overflow */
+.profile-avatar {
+    grid-area: avatar;
+    width: clamp(56px, 12vw, 80px);
+    height: clamp(56px, 12vw, 80px);
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+/* Info */
+.profile-info {
+    grid-area: info;
+    min-width: 0; /* allow children to shrink and wrap */
+}
+
+.business-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.address {
+    font-size: 0.875rem;
+    color: var(--muted);
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+/* Stats: wrap so many items do not overflow horizontally */
+.profile-stats {
+    grid-area: stats;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 16px;
+    margin-top: 16px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap; /* important for small screens */
+}
+
+.profile-stats > div {
+    text-align: center;
+    min-width: 72px; /* prevents contents from collapsing too small */
+    flex: 1 1 0;     /* lets items wrap and distribute evenly */
+}
+
+/* Stat text */
+.stat-value {
+    display: block;
+    font-size: 1.125rem;
+    font-weight: 700;
+}
+
+.stat-label {
+    font-size: 0.8125rem;
+    color: var(--muted);
+}
+
+/* Videos grid: responsive columns without overflow */
+.profile-videos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+    width: 100%;
+}
+
+/* Video item: use aspect-ratio (with legacy fallback) */
+.video-item {
+    position: relative;
+    background-color: var(--input-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    aspect-ratio: 9 / 16; /* portrait videos; keeps height proportional */
+    min-height: 0;
+    /* fallback for older browsers:
+         padding-top corresponds to 16:9 -> (16/9)*100% = 177.78%; original used tall portrait, so keep large fallback */
+    padding-top: 125%;
+}
+
+/* Make actual media fill the box and never overflow */
+.video-item video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Prevent images/videos from exceeding container width */
+img, video {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Mobile adjustments to avoid overflow and improve layout */
+@media (max-width: 640px) {
+    .profile-container {
+        width: 100%;
+    }
+
+    .profile-header {
+        grid-template-areas:
+            "avatar"
+            "info"
+            "stats";
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 12px;
+        padding: 16px;
+    }
+
+    .profile-avatar {
+        width: clamp(48px, 16vw, 64px);
+        height: clamp(48px, 16vw, 64px);
+        margin: 0 auto;
+    }
+
+    .profile-info {
+        padding: 0 8px;
+    }
+
+    .profile-stats {
+        justify-content: space-around;
+        gap: 8px;
+        padding-top: 12px;
+        margin-top: 12px;
+    }
+
+    .profile-videos {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 8px;
+    }
+
+    .video-item {
+        /* reduce fallback padding for small screens */
+        padding-top: 140%;
+    }
+}

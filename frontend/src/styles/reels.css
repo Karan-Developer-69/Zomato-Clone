@@ -1,0 +1,388 @@
+@import './vars.css';
+
+/* Reels container: full viewport scroll with snap */
+.reels-container{
+  height:100vh;
+  width:100%;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+  background: var(--bg);
+}
+
+/* each reel occupies full viewport */
+.reel{
+  position:relative;
+  height:100vh;
+  width:100vw;
+  scroll-snap-align: start; /* snap each reel to start of viewport */
+  scroll-snap-stop: always;
+  display:block;
+  background: #000;
+  overflow: hidden;
+  will-change: transform;
+}
+
+/* video covers full viewport without letterboxing */
+.reel-video{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width: auto;
+  height: 120vh; /* slightly larger for smoother cover during device aspect differences */
+  min-width:100%;
+  min-height:100%;
+  transform: translate(-50%,-50%) scale(1);
+  object-fit: cover;
+  transition: transform 520ms cubic-bezier(.2,.9,.2,1), filter 400ms ease;
+  filter: brightness(0.98);
+  display:block;
+  pointer-events: none; /* clicks handled on container for reliability — we still use video click so allow pointer-events */
+  pointer-events: auto;
+}
+
+/* active reel styling (when video playing) */
+.reel .reel-video[data-playing="1"],
+.reel[data-playing="1"] .reel-video {
+  transform: translate(-50%,-50%) scale(1.03);
+  filter: brightness(0.86);
+}
+
+/* overlay at bottom (description + button) */
+.reel-overlay{
+  position:absolute;
+  left:18px;
+  right:18px;
+  bottom:100px;
+  z-index:1;
+  display:flex;
+  gap:10px;
+  flex-direction:column;
+  align-items:flex-start;
+  pointer-events:auto;
+  transition: transform 360ms ease, opacity 300ms ease;
+  transform: translateY(0);
+  opacity:1;
+}
+
+/* description clamp to two lines, readable on video */
+.reel-desc{
+  margin:0;
+  color: #fff;
+  font-size:15px;
+  line-height:1.2;
+  max-width: 92%;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding:10px 12px;
+  border-radius:12px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.25));
+  box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+}
+
+/* Visit button */
+.visit-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  text-decoration:none;
+  padding:10px 14px;
+  border-radius:50px;
+  font-weight:600;
+  font-size:13px;
+  color:#fff;
+  background: linear-gradient(45deg, var(--accent), var(--bold));
+  box-shadow: 0 8px 30px rgba(11,95,255,0.14);
+}
+
+/* small play/pause indicator centered briefly on toggle */
+.play-indicator{
+  position:absolute;
+  z-index:13;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  pointer-events:none;
+}
+.play-indicator .icon{
+  width:84px;
+  height:84px;
+  border-radius:20px;
+  background: rgba(0,0,0,0.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  transform: scale(.9);
+  transition: opacity 260ms ease, transform 260ms cubic-bezier(.2,.9,.2,1);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* small triangle for play, two bars for pause done via pseudo */
+.play-indicator.show .icon{
+  opacity:1;
+  transform: scale(1);
+}
+
+/* we'll toggle class visually via attribute on video (dataset.playing) in JS, but fallback CSS animation */
+.reel-video[data-playing="1"] ~ .play-indicator .icon {
+  background: rgba(0,0,0,0.25);
+  /* when playing, show pause icon — create with linear-gradients */
+  mask-image: none;
+}
+.reel-video[data-playing="0"] ~ .play-indicator .icon {
+  /* show play triangle using CSS border trick via :after pseudo is not controllable here, keep simple */
+  background: rgba(0,0,0,0.45);
+}
+
+/* Home container for the entire page */
+.home-container {
+  min-height: 100vh;
+  padding-bottom: 60px; /* Space for bottom nav */
+  background-color: var(--bg);
+  position: relative;
+}
+
+/* Videos container for grid layout of videos */
+.videos-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Individual video card in the grid */
+.video-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+/* Video player element */
+.video-player {
+  width: 100%;
+  aspect-ratio: 9/16;
+  object-fit: cover;
+}
+
+/* Information section for each video */
+.video-info {
+  padding: 12px 16px;
+}
+
+/* Video title styles */
+.video-info h3 {
+  margin: 0;
+  color: var(--text);
+}
+
+/* Video description styles */
+.video-info p {
+  color: var(--muted);
+  margin: 8px 0 0;
+  font-size: 14px;
+}
+
+/* Action buttons below each video */
+.video-actions {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  gap: 24px;
+}
+
+/* Individual action button styles */
+.action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border: none;
+  color: white;
+  gap: 4px;
+  cursor: pointer;
+}
+
+/* Active state for action buttons */
+.action-btn.active {
+  color: var(--primary);
+}
+
+/* Text label styles within action buttons */
+.action-btn span {
+  font-size: 12px;
+  font-weight: 500;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+}
+
+/* Icon styles within action buttons */
+.action-btn svg {
+  font-size: 24px;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+}
+
+/* Visit store button styles */
+.visit-store-btn {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+/* Bottom navigation bar styles */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px; 
+  display: flex;
+  justify-content: space-around;
+  /* color: #000; */
+  color:var(--text);
+  background: #14141456;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  z-index: 1000;
+}
+
+/* Individual navigation button styles */
+.nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+}
+
+/* Active state for navigation buttons */
+.nav-btn.active {
+  color: var(--accent);
+}
+
+/* Text label styles within navigation buttons */
+.nav-btn span {
+  font-size: 12px;
+}
+
+/* Icon styles within navigation buttons */
+.nav-btn svg {
+  font-size: 20px;
+}
+
+/* saved container for the saved items page */
+.saved-container {
+  min-height: 100vh;
+  background-color: var(--bg);
+  padding-bottom: 60px;
+}
+
+/* Empty saved state styles */
+.empty-saved {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: var(--text);
+  text-align: center;
+  padding: 20px;
+}
+
+.empty-saved h2 {
+  margin-bottom: 8px;
+  font-size: 24px;
+}
+
+.empty-saved p {
+  color: var(--muted);
+  font-size: 16px;
+}
+
+/* responsive tweaks */
+@media (max-width:640px){
+  .reel-desc{ font-size:14px; padding:8px 10px; border-radius:10px; }
+  .visit-btn{ padding:9px 12px; font-size:13px; }
+  .play-indicator .icon{ width:66px; height:66px; border-radius:14px; }
+}
+
+/* For larger screens */
+@media (min-width: 768px) {
+  .home-container {
+    padding-left: 80px;
+    padding-bottom: 0;
+  }
+
+  .bottom-nav {
+    left: 0;
+    top: 0;
+    width: 80px;
+    height: 100vh;
+    flex-direction: column;
+    border-top: none;
+    border-right: 1px solid var(--border);
+  }
+
+  .create-btn {
+    transform: translateY(0);
+  }
+}
+
+.reel-actions {
+  position: absolute;
+  right: 16px;
+  bottom: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  z-index: 2;
+}
+
+.action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border: none;
+  color: white;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.action-btn svg {
+  font-size: 24px;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+}
+
+.action-btn span {
+  font-size: 12px;
+  font-weight: 500;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+}
+
+.action-btn.active {
+  color: var(--primary);
+}
+
+.action-btn:hover {
+  transform: scale(1.1);
+}
+
+.action-btn:active {
+  transform: scale(0.95);
+}
+
