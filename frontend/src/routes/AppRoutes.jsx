@@ -10,7 +10,7 @@ import Profile from '../pages/food-partner/Profile';
 import Saved from '../pages/user/Saved';
 
 export default function AppRoutes(){
-  const SERVER_URL = import.meta.env.SERVER_URL;
+  const SERVER_URL = import.meta.env.VITE_SERVER_URL;
   return (
     <BrowserRouter>
       <Routes>
