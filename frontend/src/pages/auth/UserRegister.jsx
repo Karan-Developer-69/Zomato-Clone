@@ -1,25 +1,39 @@
  
 import '../../styles/auth.css';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+import { useState } from 'react';
 
 export default function UserRegister({SERVER_URL}){
-
   const navigate = useNavigate();
+  const { register } = useAuth();
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleRegister = async () => {
-    try {
-      const response = await axios.post(`${SERVER_URL}/api/auth/user/register`, {
-        fullName: document.getElementById('user-name').value,
-        email: document.getElementById('user-email').value,
-        password: document.getElementById('user-password').value
-      },{withCredentials:true});
-      // Redirect or show success message
-      navigate('/')
-    } catch (error) {
-      console.error('Registration failed:', error);
-      // Show error message to user
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    const fullName = document.getElementById('user-name').value;
+    const email = document.getElementById('user-email').value;
+    const password = document.getElementById('user-password').value;
+
+    if (!fullName || !email || !password) {
+      setError('Please fill in all fields');
+      setIsLoading(false);
+      return;
     }
+
+    const result = await register({ fullName, email, password }, 'user');
+    
+    if (result.success) {
+      navigate('/');
+    } else {
+      setError(result.error);
+    }
+    
+    setIsLoading(false);
   };
 
   return (
@@ -38,25 +52,61 @@ export default function UserRegister({SERVER_URL}){
           </div>
         </div>
 
-        <form className="auth-form" aria-label="User register form">
+        <form className="auth-form" aria-label="User register form" onSubmit={handleRegister}>
+          {error && (
+            <div style={{ 
+              color: 'red', 
+              marginBottom: '16px', 
+              padding: '8px', 
+              backgroundColor: '#ffe6e6', 
+              borderRadius: '4px',
+              fontSize: '14px'
+            }}>
+              {error}
+            </div>
+          )}
+          
           <div>
             <label htmlFor="user-name">Full name</label>
-            <input id="user-name" className="input" type="text" placeholder="Your name" />
+            <input 
+              id="user-name" 
+              className="input" 
+              type="text" 
+              placeholder="Your name" 
+              required 
+              disabled={isLoading}
+            />
           </div>
 
           <div>
             <label htmlFor="user-email">Email</label>
-            <input id="user-email" className="input" type="email" placeholder="you@domain.com" />
+            <input 
+              id="user-email" 
+              className="input" 
+              type="email" 
+              placeholder="you@domain.com" 
+              required 
+              disabled={isLoading}
+            />
           </div>
 
           <div>
             <label htmlFor="user-password">Password</label>
-            <input id="user-password" className="input" type="password" placeholder="Choose a password" />
+            <input 
+              id="user-password" 
+              className="input" 
+              type="password" 
+              placeholder="Choose a password" 
+              required 
+              disabled={isLoading}
+            />
           </div>
 
           <div className="actions">
-            <button type="button" className="btn" onClick={handleRegister}>Create account</button>
-            <button type="button" className="btn ghost">Sign in</button>
+            <button type="submit" className="btn" disabled={isLoading}>
+              {isLoading ? 'Creating account...' : 'Create account'}
+            </button>
+            <button type="button" className="btn ghost" disabled={isLoading}>Sign in</button>
           </div>
         </form>
 

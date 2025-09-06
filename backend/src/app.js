@@ -7,10 +7,10 @@ const cors = require('cors');
 
 const app = express();
 app.use(cors({
-    origin: process.env.FRONTEND_URL, // Adjust this to your frontend's origin
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173', // Default to Vite dev server
     credentials: true, // Allow cookies to be sent
-    sameSite: 'None', // Adjust based on your needs
-    secure: true // Ensure cookies are only sent over HTTPS
+    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'lax',
+    secure: process.env.NODE_ENV === 'production' // Only secure in production
 }));
 app.use(cookieParser());
 app.use(express.json());

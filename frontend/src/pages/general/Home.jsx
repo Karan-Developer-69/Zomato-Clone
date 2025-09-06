@@ -4,6 +4,7 @@
   import axios from "axios";
   import "../../styles/reels.css";
   import Reel from "../../components/Reel";
+  import Navigation from "../../components/Navigation";
   
 
   const Home = ({ SERVER_URL }) => {
@@ -137,6 +138,7 @@
 
     return (
       <div className="home-container">
+        <Navigation />
         <div className="reels-container" role="list">
           {videos.map((v, i) => (
             <Reel
