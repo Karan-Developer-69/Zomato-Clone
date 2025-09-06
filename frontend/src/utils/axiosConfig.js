@@ -13,14 +13,11 @@ const apiClient = axios.create({
 // Request interceptor to ensure cookies are sent
 apiClient.interceptors.request.use(
   (config) => {
-    // Ensure credentials are always sent
+    // Ensure credentials are always sent (this includes httpOnly cookies)
     config.withCredentials = true;
     
-    // Add any additional headers if needed
-    const token = cookieUtils.getAuthToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // Note: We don't add Authorization header here because
+    // the token is sent automatically via httpOnly cookies
     
     return config;
   },
@@ -41,8 +38,7 @@ apiClient.interceptors.response.use(
       
       switch (status) {
         case 401:
-          // Unauthorized - clear auth data
-          cookieUtils.clearAuthToken();
+          // Unauthorized - clear local auth data
           cookieUtils.deleteCookie('userInfo');
           // Redirect to login if not already there
           if (window.location.pathname !== '/user/login' && window.location.pathname !== '/food-partner/login') {

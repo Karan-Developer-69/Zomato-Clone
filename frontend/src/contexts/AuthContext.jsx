@@ -36,33 +36,23 @@ export const AuthProvider = ({ children, serverUrl }) => {
     try {
       setIsLoading(true);
       
-      // Check if we have a token in cookies first
-      const token = cookieUtils.getAuthToken();
-      if (!token) {
-        setUser(null);
-        setIsAuthenticated(false);
-        setIsLoading(false);
-        return;
-      }
-
+      // Always check with the server since token is httpOnly
       const response = await apiHelpers.get(`${serverUrl}/api/auth/status`);
       
       if (response.data.isAuthenticated) {
         setUser(response.data.user);
         setIsAuthenticated(true);
-        // Store user info in cookie for persistence
+        // Store user info in cookie for persistence (this is not httpOnly)
         cookieUtils.setJsonCookie('userInfo', response.data.user, { expires: 7 });
       } else {
         setUser(null);
         setIsAuthenticated(false);
-        cookieUtils.clearAuthToken();
         cookieUtils.deleteCookie('userInfo');
       }
     } catch (error) {
       console.error('Auth check failed:', error);
       setUser(null);
       setIsAuthenticated(false);
-      cookieUtils.clearAuthToken();
       cookieUtils.deleteCookie('userInfo');
     } finally {
       setIsLoading(false);
@@ -81,8 +71,12 @@ export const AuthProvider = ({ children, serverUrl }) => {
         setUser(response.data.user);
         setIsAuthenticated(true);
         
-        // Store user info in cookie for persistence
-        cookieUtils.setJsonCookie('userInfo', response.data.user, { expires: 7 });
+        // Store user info in cookie for persistence (token is set by backend as httpOnly)
+        cookieUtils.setJsonCookie('userInfo', response.data.user, { 
+          expires: 7,
+          path: '/',
+          sameSite: 'lax'
+        });
         
         return { success: true, data: response.data };
       }
@@ -109,8 +103,12 @@ export const AuthProvider = ({ children, serverUrl }) => {
         setUser(response.data.user);
         setIsAuthenticated(true);
         
-        // Store user info in cookie for persistence
-        cookieUtils.setJsonCookie('userInfo', response.data.user, { expires: 7 });
+        // Store user info in cookie for persistence (token is set by backend as httpOnly)
+        cookieUtils.setJsonCookie('userInfo', response.data.user, { 
+          expires: 7,
+          path: '/',
+          sameSite: 'lax'
+        });
         
         return { success: true, data: response.data };
       }
@@ -138,8 +136,8 @@ export const AuthProvider = ({ children, serverUrl }) => {
       // Clear all authentication data
       setUser(null);
       setIsAuthenticated(false);
-      cookieUtils.clearAuthToken();
-      cookieUtils.deleteCookie('userInfo');
+      // Clear user info cookie (token is cleared by backend)
+      cookieUtils.deleteCookie('userInfo', { path: '/', sameSite: 'lax' });
     }
   };
 

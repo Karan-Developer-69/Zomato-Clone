@@ -39,8 +39,10 @@ export const cookieUtils = {
     return Cookies.get();
   },
 
-  // Set authentication token cookie
+  // Note: Authentication token is set as httpOnly by backend
+  // These methods are kept for compatibility but won't work with httpOnly cookies
   setAuthToken: (token, options = {}) => {
+    console.warn('setAuthToken: Token should be set by backend as httpOnly cookie');
     return cookieUtils.setCookie('token', token, {
       expires: 7, // 7 days
       path: '/',
@@ -50,13 +52,15 @@ export const cookieUtils = {
     });
   },
 
-  // Get authentication token
+  // Get authentication token (won't work with httpOnly cookies)
   getAuthToken: () => {
+    console.warn('getAuthToken: Cannot access httpOnly cookies from frontend');
     return cookieUtils.getCookie('token');
   },
 
-  // Clear authentication token
+  // Clear authentication token (won't work with httpOnly cookies)
   clearAuthToken: () => {
+    console.warn('clearAuthToken: Token should be cleared by backend');
     return cookieUtils.deleteCookie('token');
   },
 

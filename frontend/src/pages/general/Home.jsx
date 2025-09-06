@@ -5,6 +5,8 @@
   import "../../styles/reels.css";
   import Reel from "../../components/Reel";
   import Navigation from "../../components/Navigation";
+  import CookieTest from "../../components/CookieTest";
+  import "../../utils/testCookies"; // Auto-runs cookie tests
   
 
   const Home = ({ SERVER_URL }) => {
@@ -151,6 +153,7 @@
     return (
       <div className="home-container">
         <Navigation />
+        <CookieTest />
         <div className="reels-container" role="list">
           {videos.map((v, i) => (
             <Reel
