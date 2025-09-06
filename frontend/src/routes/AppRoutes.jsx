@@ -12,10 +12,6 @@ import ProtectedRoute from '../components/ProtectedRoute';
 
 export default function AppRoutes(){
   const SERVER_URL = import.meta.env.VITE_SERVER_URL;
-<<<<<<< HEAD
-  console.log(SERVER_URL);
-=======
->>>>>>> 2bb332f6f2c254b7e8ba569b028120faf0df44a0
   return (
     <BrowserRouter>
       <Routes>
