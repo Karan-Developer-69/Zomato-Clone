@@ -1,42 +1,89 @@
-// Cookie utility functions for frontend
+import Cookies from 'js-cookie';
+
+// Cookie utility functions for frontend using js-cookie
 export const cookieUtils = {
-  // Set a cookie
-  setCookie: (name, value, days = 7) => {
-    const expires = new Date();
-    expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
-    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+  // Set a cookie with proper configuration
+  setCookie: (name, value, options = {}) => {
+    const defaultOptions = {
+      expires: 7, // 7 days
+      path: '/',
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production'
+    };
+    
+    return Cookies.set(name, value, { ...defaultOptions, ...options });
   },
 
   // Get a cookie value
   getCookie: (name) => {
-    const nameEQ = name + "=";
-    const ca = document.cookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-      let c = ca[i];
-      while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-      if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-    }
-    return null;
+    return Cookies.get(name);
   },
 
   // Delete a cookie
-  deleteCookie: (name) => {
-    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+  deleteCookie: (name, options = {}) => {
+    const defaultOptions = {
+      path: '/',
+      sameSite: 'lax'
+    };
+    
+    return Cookies.remove(name, { ...defaultOptions, ...options });
   },
 
   // Check if a cookie exists
   hasCookie: (name) => {
-    return cookieUtils.getCookie(name) !== null;
+    return Cookies.get(name) !== undefined;
+  },
+
+  // Get all cookies as an object
+  getAllCookies: () => {
+    return Cookies.get();
+  },
+
+  // Set authentication token cookie
+  setAuthToken: (token, options = {}) => {
+    return cookieUtils.setCookie('token', token, {
+      expires: 7, // 7 days
+      path: '/',
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      ...options
+    });
+  },
+
+  // Get authentication token
+  getAuthToken: () => {
+    return cookieUtils.getCookie('token');
+  },
+
+  // Clear authentication token
+  clearAuthToken: () => {
+    return cookieUtils.deleteCookie('token');
   },
 
   // Clear all cookies (useful for logout)
   clearAllCookies: () => {
-    const cookies = document.cookie.split(";");
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i];
-      const eqPos = cookie.indexOf("=");
-      const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-      document.cookie = `${name.trim()}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+    const allCookies = Cookies.get();
+    Object.keys(allCookies).forEach(cookieName => {
+      Cookies.remove(cookieName, { path: '/' });
+    });
+  },
+
+  // Set cookie with JSON value
+  setJsonCookie: (name, value, options = {}) => {
+    return cookieUtils.setCookie(name, JSON.stringify(value), options);
+  },
+
+  // Get cookie as JSON
+  getJsonCookie: (name) => {
+    const value = cookieUtils.getCookie(name);
+    if (value) {
+      try {
+        return JSON.parse(value);
+      } catch (e) {
+        console.error('Error parsing JSON cookie:', e);
+        return null;
+      }
     }
+    return null;
   }
 };

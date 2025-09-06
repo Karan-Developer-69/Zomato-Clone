@@ -1,0 +1,304 @@
+/* Navigation Styles */
+.navigation {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+}
+
+.brand-text {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #ef4444;
+  text-decoration: none;
+}
+
+/* Desktop Menu */
+.desktop-menu {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-right: 1rem;
+}
+
+.welcome-text {
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.user-type {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.user-type.user {
+  background: #10b981;
+  color: white;
+}
+
+.user-type.foodPartner {
+  background: #3b82f6;
+  color: white;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  text-decoration: none;
+}
+
+.nav-btn.secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.nav-btn.secondary:hover {
+  background: var(--input-bg);
+  transform: translateY(-1px);
+}
+
+.nav-btn.primary {
+  background: #ef4444;
+  color: white;
+}
+
+.nav-btn.primary:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+.nav-btn.danger {
+  background: #ef4444;
+  color: white;
+}
+
+.nav-btn.danger:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+/* Mobile Menu Button */
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+}
+
+.mobile-menu-btn:hover {
+  background: var(--input-bg);
+}
+
+/* Mobile Menu Overlay */
+.mobile-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.mobile-menu {
+  background: var(--card);
+  border-radius: 1rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 320px;
+  animation: slideIn 0.3s ease;
+  overflow: hidden;
+}
+
+.mobile-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--input-bg);
+}
+
+.user-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
+.mobile-menu-content {
+  padding: 1rem 0;
+}
+
+.mobile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.mobile-menu-item:hover {
+  background: var(--input-bg);
+}
+
+.mobile-menu-item.danger {
+  color: #ef4444;
+}
+
+.mobile-menu-item.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.mobile-menu-item svg {
+  font-size: 1.125rem;
+  width: 20px;
+  text-align: center;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { 
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to { 
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .navigation {
+    padding: 1rem;
+  }
+  
+  .desktop-menu {
+    display: none;
+  }
+  
+  .mobile-menu-btn {
+    display: block;
+  }
+  
+  .user-info {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .navigation {
+    padding: 0.75rem 1rem;
+  }
+  
+  .brand-text {
+    font-size: 1.25rem;
+  }
+  
+  .mobile-menu {
+    max-width: 280px;
+  }
+  
+  .mobile-menu-header {
+    padding: 1rem;
+  }
+  
+  .mobile-menu-item {
+    padding: 0.875rem 1rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .navigation {
+    background: rgba(7, 18, 27, 0.8);
+    border-bottom-color: var(--border);
+  }
+  
+  .mobile-menu {
+    background: var(--card);
+  }
+  
+  .mobile-menu-header {
+    background: var(--input-bg);
+  }
+}

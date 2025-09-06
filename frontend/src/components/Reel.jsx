@@ -1,6 +1,7 @@
  
 import { Link } from 'react-router-dom';
 import { FaHeart, FaComment, FaBookmark, FaShare } from 'react-icons/fa';
+import { useState } from 'react';
 
 const Reel = ({
   video,
@@ -12,6 +13,8 @@ const Reel = ({
   handleSave,
   isSavedPage = false,
 }) => {
+  const [isLiked, setIsLiked] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
   return (
     <section
       className="reel"
@@ -42,8 +45,11 @@ const Reel = ({
 
       <div className="reel-actions">
         <button
-          className='action-btn'
-          onClick={() => handleLike(video)}
+          className={`action-btn ${isLiked ? 'liked' : ''}`}
+          onClick={() => {
+            handleLike(video);
+            setIsLiked(!isLiked);
+          }}
         >
           <FaHeart />
           <span>{video.likeCount || 0}</span>
@@ -57,15 +63,21 @@ const Reel = ({
         {isSavedPage ? (
           <button
             className="action-btn active"
-            onClick={() => handleSave(video)}
+            onClick={() => {
+              handleSave(video);
+              setIsSaved(!isSaved);
+            }}
           >
             <FaBookmark />
             <span>Saved</span>
           </button>
         ) : (
           <button
-            className='action-btn'
-            onClick={() => handleSave(video)}
+            className={`action-btn ${isSaved ? 'active' : ''}`}
+            onClick={() => {
+              handleSave(video);
+              setIsSaved(!isSaved);
+            }}
           >
             <FaBookmark />
             <span>{video.saves || 0}</span>

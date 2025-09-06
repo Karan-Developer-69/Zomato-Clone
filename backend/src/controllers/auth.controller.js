@@ -159,6 +159,7 @@ function logoutFoodPartner(req, res) {
 
 async function checkAuthStatus(req, res) {
     try {
+        console.log("cookie",req.cookies);
         const token = req.cookies.token;
         if (!token) {
             return res.status(401).json({ message: 'No token found', isAuthenticated: false });

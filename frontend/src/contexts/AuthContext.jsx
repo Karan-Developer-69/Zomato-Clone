@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import { apiHelpers } from '../utils/axiosConfig';
+import { cookieUtils } from '../utils/cookies';
 
 const AuthContext = createContext();
 
@@ -16,9 +17,14 @@ export const AuthProvider = ({ children, serverUrl }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Configure axios defaults for credentials
+  // Initialize authentication state from cookies
   useEffect(() => {
-    axios.defaults.withCredentials = true;
+    // Check if user info exists in cookies for faster initial load
+    const savedUserInfo = cookieUtils.getJsonCookie('userInfo');
+    if (savedUserInfo) {
+      setUser(savedUserInfo);
+      setIsAuthenticated(true);
+    }
   }, []);
 
   // Check authentication status on mount
@@ -29,19 +35,35 @@ export const AuthProvider = ({ children, serverUrl }) => {
   const checkAuthStatus = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get(`${serverUrl}/api/auth/status`);
+      
+      // Check if we have a token in cookies first
+      const token = cookieUtils.getAuthToken();
+      if (!token) {
+        setUser(null);
+        setIsAuthenticated(false);
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await apiHelpers.get(`${serverUrl}/api/auth/status`);
       
       if (response.data.isAuthenticated) {
         setUser(response.data.user);
         setIsAuthenticated(true);
+        // Store user info in cookie for persistence
+        cookieUtils.setJsonCookie('userInfo', response.data.user, { expires: 7 });
       } else {
         setUser(null);
         setIsAuthenticated(false);
+        cookieUtils.clearAuthToken();
+        cookieUtils.deleteCookie('userInfo');
       }
     } catch (error) {
       console.error('Auth check failed:', error);
       setUser(null);
       setIsAuthenticated(false);
+      cookieUtils.clearAuthToken();
+      cookieUtils.deleteCookie('userInfo');
     } finally {
       setIsLoading(false);
     }
@@ -53,11 +75,15 @@ export const AuthProvider = ({ children, serverUrl }) => {
         ? `${serverUrl}/api/auth/user/login`
         : `${serverUrl}/api/auth/food-partner/login`;
       
-      const response = await axios.post(endpoint, { email, password });
+      const response = await apiHelpers.post(endpoint, { email, password });
       
       if (response.data.user) {
         setUser(response.data.user);
         setIsAuthenticated(true);
+        
+        // Store user info in cookie for persistence
+        cookieUtils.setJsonCookie('userInfo', response.data.user, { expires: 7 });
+        
         return { success: true, data: response.data };
       }
       
@@ -77,11 +103,15 @@ export const AuthProvider = ({ children, serverUrl }) => {
         ? `${serverUrl}/api/auth/user/register`
         : `${serverUrl}/api/auth/food-partner/register`;
       
-      const response = await axios.post(endpoint, userData);
+      const response = await apiHelpers.post(endpoint, userData);
       
       if (response.data.user) {
         setUser(response.data.user);
         setIsAuthenticated(true);
+        
+        // Store user info in cookie for persistence
+        cookieUtils.setJsonCookie('userInfo', response.data.user, { expires: 7 });
+        
         return { success: true, data: response.data };
       }
       
@@ -101,12 +131,15 @@ export const AuthProvider = ({ children, serverUrl }) => {
         ? `${serverUrl}/api/auth/user/logout`
         : `${serverUrl}/api/auth/food-partner/logout`;
       
-      await axios.get(endpoint);
+      await apiHelpers.get(endpoint);
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {
+      // Clear all authentication data
       setUser(null);
       setIsAuthenticated(false);
+      cookieUtils.clearAuthToken();
+      cookieUtils.deleteCookie('userInfo');
     }
   };
 
