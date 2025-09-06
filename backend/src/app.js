@@ -9,6 +9,8 @@ const app = express();
 app.use(cors({
     origin: process.env.FRONTEND_URL, // Adjust this to your frontend's origin
     credentials: true, // Allow cookies to be sent
+    sameSite: 'None', // Adjust based on your needs
+    secure: true // Ensure cookies are only sent over HTTPS
 }));
 app.use(cookieParser());
 app.use(express.json());
