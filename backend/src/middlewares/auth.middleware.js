@@ -3,7 +3,7 @@ const userModel = require('../models/user.model');
 const jwt = require('jsonwebtoken');
 
 async function authFoodPartnerMiddleware(req, res, next) {
-    const token = req.cookies.token;
+    const token = req.body.token;
     if (!token) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -21,7 +21,7 @@ async function authFoodPartnerMiddleware(req, res, next) {
 }
 
 async function authUserMiddleware(req, res, next) {
-    const token = req.cookies.token;
+    const token = req.body.token;
     if (!token) {
         return res.status(401).json({ message: 'Unauthorized' });
     }

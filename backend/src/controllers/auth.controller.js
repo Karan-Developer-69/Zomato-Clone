@@ -20,19 +20,20 @@ async function registerUser(req, res) {
     });
 
     const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
-    res.cookie('token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    });
+    // res.cookie('token', token, {
+    //     httpOnly: true,
+    //     secure: process.env.NODE_ENV === 'production',
+    //     sameSite: 'lax',
+    //     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    // });
 
     res.status(201).json({ message: 'User registered successfully',
         user: {
             id: newUser._id,
             fullName: newUser.fullName,
             email: newUser.email,
-        }
+        },
+        token
      });
 }
 
@@ -50,31 +51,32 @@ async function loginUser(req, res) {
     }
 
     const token = jwt.sign({ id: user._id}, process.env.JWT_SECRET);
-    res.cookie('token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    });
+    // res.cookie('token', token, {
+    //     httpOnly: true,
+    //     secure: process.env.NODE_ENV === 'production',
+    //     sameSite: 'lax',
+    //     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    // });
 
     res.status(200).json({ message: 'Login successful',
         user: {
             id: user._id,
             fullName: user.fullName,
             email: user.email,
-        }
+        },
+        token
      });
 
 }
 
-function logoutUser(req, res) {
-    res.clearCookie('token', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
-    });
-    res.status(200).json({ message: 'Logout successful' });
-}
+// function logoutUser(req, res) {
+//     // res.clearCookie('token', {
+//     //     httpOnly: true,
+//     //     secure: process.env.NODE_ENV === 'production',
+//     //     sameSite: 'lax'
+//     // });
+//     res.status(200).json({ message: 'Logout successful' });
+// }
 
 async function registerFoodPartner(req, res) {
     const { name, contactName, phone, address, email, password } = req.body;
@@ -96,12 +98,12 @@ async function registerFoodPartner(req, res) {
     });
 
     const token = jwt.sign({ id: newFoodPartner._id }, process.env.JWT_SECRET);
-    res.cookie('token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    });
+    // res.cookie('token', token, {
+    //     httpOnly: true,
+    //     secure: process.env.NODE_ENV === 'production',
+    //     sameSite: 'lax',
+    //     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    // });
 
     res.status(201).json({ message: 'Food partner registered successfully',
         foodPartner: {
@@ -111,7 +113,8 @@ async function registerFoodPartner(req, res) {
             contactName: newFoodPartner.contactName,
             phone: newFoodPartner.phone,
             address: newFoodPartner.address
-        }
+        },
+        token
      });
 }
 
@@ -129,12 +132,12 @@ async function loginFoodPartner(req, res) {
     }
 
     const token = jwt.sign({ id: foodPartner._id }, process.env.JWT_SECRET);
-    res.cookie('token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    });
+    // res.cookie('token', token, {
+    //     httpOnly: true,
+    //     secure: process.env.NODE_ENV === 'production',
+    //     sameSite: 'lax',
+    //     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    // });
 
     res.status(200).json({ message: 'Login successful',
         foodPartner: {
@@ -144,23 +147,23 @@ async function loginFoodPartner(req, res) {
             contactName: foodPartner.contactName,
             phone: foodPartner.phone,
             address: foodPartner.address
-        }
+        },
+        token
      });
 }
 
-function logoutFoodPartner(req, res) {
-    res.clearCookie('token', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
-    });
-    res.status(200).json({ message: 'Food partner logout successfully' });
-}
+// function logoutFoodPartner(req, res) {
+//     res.clearCookie('token', {
+//         httpOnly: true,
+//         secure: process.env.NODE_ENV === 'production',
+//         sameSite: 'lax'
+//     });
+//     res.status(200).json({ message: 'Food partner logout successfully' });
+// }
 
 async function checkAuthStatus(req, res) {
     try {
-        console.log("cookie",req.cookies);
-        const token = req.cookies.token;
+        const token = req.body.token;
         if (!token) {
             return res.status(401).json({ message: 'No token found', isAuthenticated: false });
         }
@@ -206,4 +209,4 @@ async function checkAuthStatus(req, res) {
     }
 }
 
-module.exports = { registerUser, loginUser, logoutUser, registerFoodPartner, loginFoodPartner, logoutFoodPartner, checkAuthStatus };
+module.exports = { registerUser, loginUser, registerFoodPartner, loginFoodPartner,  checkAuthStatus };

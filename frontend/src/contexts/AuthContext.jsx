@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { apiHelpers } from '../utils/axiosConfig';
-import { cookieUtils } from '../utils/cookies';
+import axios from 'axios';
+import { useCookies } from 'react-cookie';
 
 const AuthContext = createContext();
 
@@ -16,15 +16,11 @@ export const AuthProvider = ({ children, serverUrl }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [cookies, setCookie, removeCookie] = useCookies(['token']);
 
-  // Initialize authentication state from cookies
+  // Configure axios defaults for credentials
   useEffect(() => {
-    // Check if user info exists in cookies for faster initial load
-    const savedUserInfo = cookieUtils.getJsonCookie('userInfo');
-    if (savedUserInfo) {
-      setUser(savedUserInfo);
-      setIsAuthenticated(true);
-    }
+    axios.defaults.withCredentials = true;
   }, []);
 
   // Check authentication status on mount
@@ -35,25 +31,19 @@ export const AuthProvider = ({ children, serverUrl }) => {
   const checkAuthStatus = async () => {
     try {
       setIsLoading(true);
-      
-      // Always check with the server since token is httpOnly
-      const response = await apiHelpers.get(`${serverUrl}/api/auth/status`);
+      const response = await axios.post(`${serverUrl}/api/auth/status`,{token: cookies.token});
       
       if (response.data.isAuthenticated) {
         setUser(response.data.user);
         setIsAuthenticated(true);
-        // Store user info in cookie for persistence (this is not httpOnly)
-        cookieUtils.setJsonCookie('userInfo', response.data.user, { expires: 7 });
       } else {
         setUser(null);
         setIsAuthenticated(false);
-        cookieUtils.deleteCookie('userInfo');
       }
     } catch (error) {
       console.error('Auth check failed:', error);
       setUser(null);
       setIsAuthenticated(false);
-      cookieUtils.deleteCookie('userInfo');
     } finally {
       setIsLoading(false);
     }
@@ -65,19 +55,12 @@ export const AuthProvider = ({ children, serverUrl }) => {
         ? `${serverUrl}/api/auth/user/login`
         : `${serverUrl}/api/auth/food-partner/login`;
       
-      const response = await apiHelpers.post(endpoint, { email, password });
+      const response = await axios.post(endpoint, { email, password });
       
       if (response.data.user) {
         setUser(response.data.user);
         setIsAuthenticated(true);
-        
-        // Store user info in cookie for persistence (token is set by backend as httpOnly)
-        cookieUtils.setJsonCookie('userInfo', response.data.user, { 
-          expires: 7,
-          path: '/',
-          sameSite: 'lax'
-        });
-        
+        setCookie('token', response.data.token);
         return { success: true, data: response.data };
       }
       
@@ -97,19 +80,12 @@ export const AuthProvider = ({ children, serverUrl }) => {
         ? `${serverUrl}/api/auth/user/register`
         : `${serverUrl}/api/auth/food-partner/register`;
       
-      const response = await apiHelpers.post(endpoint, userData);
+      const response = await axios.post(endpoint, userData);
       
       if (response.data.user) {
         setUser(response.data.user);
         setIsAuthenticated(true);
-        
-        // Store user info in cookie for persistence (token is set by backend as httpOnly)
-        cookieUtils.setJsonCookie('userInfo', response.data.user, { 
-          expires: 7,
-          path: '/',
-          sameSite: 'lax'
-        });
-        
+        setCookie('token', response.data.token);
         return { success: true, data: response.data };
       }
       
@@ -129,15 +105,13 @@ export const AuthProvider = ({ children, serverUrl }) => {
         ? `${serverUrl}/api/auth/user/logout`
         : `${serverUrl}/api/auth/food-partner/logout`;
       
-      await apiHelpers.get(endpoint);
+      // await axios.get(endpoint);
+      removeCookie('token');
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {
-      // Clear all authentication data
       setUser(null);
       setIsAuthenticated(false);
-      // Clear user info cookie (token is cleared by backend)
-      cookieUtils.deleteCookie('userInfo', { path: '/', sameSite: 'lax' });
     }
   };
 

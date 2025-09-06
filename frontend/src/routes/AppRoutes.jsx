@@ -26,6 +26,14 @@ export default function AppRoutes(){
             </ProtectedRoute>
           } 
         />
+          <Route 
+            path="/food-partner/:id" 
+            element={
+              <ProtectedRoute requireUser={true}>
+                <Profile SERVER_URL={SERVER_URL} />
+              </ProtectedRoute>
+            } 
+          />
         
         {/* Protected routes for food partners */}
         <Route 
@@ -33,14 +41,6 @@ export default function AppRoutes(){
           element={
             <ProtectedRoute requireFoodPartner={true}>
               <CreateFood SERVER_URL={SERVER_URL} />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/food-partner/:id" 
-          element={
-            <ProtectedRoute requireFoodPartner={true}>
-              <Profile SERVER_URL={SERVER_URL} />
             </ProtectedRoute>
           } 
         />
