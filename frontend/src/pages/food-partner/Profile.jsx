@@ -2,14 +2,18 @@ import React, { useState, useEffect } from 'react';
 import '../../styles/profile.css';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Profile = ({ SERVER_URL }) => {
     const { id } = useParams();
+    const {cookies} = useAuth();
     const [partner, setPartner] = useState(null);
     const [videos, setVideos] = useState([]);
 
     useEffect(() => {
-        axios.get(`${SERVER_URL}/api/food-partner/${id}`,{withCredentials:true})
+        axios.get(`${SERVER_URL}/api/food-partner/${id}`,{
+            headers: { 'Authorization': `Bearer ${cookies.token}` }
+        })
           .then(res => {
             setPartner(res.data.foodPartner)
             setVideos(res.data.foodPartner.foodItems)

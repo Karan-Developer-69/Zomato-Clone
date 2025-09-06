@@ -1,193 +1,202 @@
-  import { useEffect, useRef, useCallback, useState } from "react";
-  import { Link, useNavigate, useLocation } from "react-router-dom";
-  import { FaHome, FaBookmark } from "react-icons/fa";
-  import axios from "axios";
-  import "../../styles/reels.css";
-  import Reel from "../../components/Reel";
-  import Navigation from "../../components/Navigation";
-import { useAuth } from "../../contexts/AuthContext";
-  
+import { useEffect, useRef, useState, useCallback } from 'react';
+import axios from 'axios';
+import { useCookies } from 'react-cookie';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { FaHome, FaBookmark } from 'react-icons/fa';
+import Reel from '../../components/Reel'; // Assuming Reel.jsx is in the same directory
+import Navigation from '../../components/Navigation'; // Assuming Navigation.jsx exists
 
-  const Home = ({ SERVER_URL }) => {
+
+const Home = ({SERVER_URL}) => {
     const [videos, setVideos] = useState([]);
-    const videoRefs = useRef([]);
-    const reelRefs = useRef([]);
-    const {cookies} = useAuth()
+    const [cookies] = useCookies(['token']);
     const navigate = useNavigate();
     const location = useLocation();
 
-    // This function runs on every render to reset the ref arrays, which is correct.
-    const resetRefs = () => {
-      videoRefs.current = [];
-      reelRefs.current = [];
-    };
-    resetRefs();
+    // Refs for all video elements and reel containers
+    const videoRefs = useRef([]);
+    const reelRefs = useRef([]);
 
-    const setVideoRef = (el) => {
-      if (el) videoRefs.current.push(el);
-    };
-    const setReelRef = (el) => {
-      if (el) reelRefs.current.push(el);
-    };
+    // State to keep track of which video is currently playing by its index
+    const [currentPlayingIndex, setCurrentPlayingIndex] = useState(null);
 
-    // toggle play/pause on click
-    const handleVideoToggle = useCallback((idx) => {
-      const v = videoRefs.current[idx];
-      if (!v) return;
-      if (v.paused) {
-        v.play();
-        v.dataset.playing = "1";
-      } else {
-        v.pause();
-        v.dataset.playing = "0";
-      }
+    // Set a ref for a specific video element
+    const setVideoRef = useCallback((el, index) => {
+        if (el) {
+            videoRefs.current[index] = el;
+        }
     }, []);
 
-    // Fetch videos from API on component mount
-    useEffect(() => {
-      axios
-        .get(`${SERVER_URL}/api/food`,{
-          headers: {
-            'Authorization': `Bearer ${cookies.token}`
-          }
-        } )
-        .then((res) => {
-          if (res.data && res.data.foodItems) {
-            setVideos(res.data.foodItems);
-          }
-        })
-        .catch((err) => {
-          console.error("Error fetching food data:", err);
-        });
+    // Set a ref for a specific reel container
+    const setReelRef = useCallback((el, index) => {
+        if (el) {
+            reelRefs.current[index] = el;
+        }
     }, []);
 
-    // IntersectionObserver to auto-play the visible video and pause others
-    // *** THIS IS THE CORRECTED PART ***
+    // Fetch videos from the backend
     useEffect(() => {
-      // Don't run if there are no videos loaded yet
-      if (videos.length === 0 || reelRefs.current.length === 0) return;
+        axios.get(`${SERVER_URL}/api/food`, { headers: { 'Authorization': `Bearer ${cookies.token}` } })
+            .then((res) => {
+                setVideos(res.data.foodItems);
+            })
+            .catch((err) => {
+                console.error('Error fetching videos:', err);
+                // Handle error, e.g., redirect to login if token is invalid
+                if (err.response && err.response.status === 401) {
+                    navigate('/login');
+                }
+            });
+    }, [cookies.token, navigate]);
 
-      const options = {
-        root: null,
-        rootMargin: "0px",
-        threshold: 0.55, // play when at least 55% visible
-      };
+    // Intersection Observer for autoplay/pause
+    useEffect(() => {
+        if (videos.length === 0 || reelRefs.current.length === 0) return;
 
-      const onIntersect = (entries) => {
-        entries.forEach((entry) => {
-          const idx = parseInt(entry.target.dataset.index, 10);
-          const vid = videoRefs.current[idx];
-          if (!vid) return;
+        const options = {
+            root: null, // viewport
+            rootMargin: '0px',
+            threshold: 0.75, // When 75% of the reel is visible
+        };
 
-          if (entry.isIntersecting) {
-            // play the visible one (muted to ensure autoplay works)
-            vid.muted = true;
-            vid.play().catch(() => {});
-            vid.dataset.playing = "1";
-          } else {
-            vid.pause();
-            vid.dataset.playing = "0";
-          }
+        const onIntersect = (entries) => {
+            entries.forEach((entry) => {
+                const index = parseInt(entry.target.dataset.index);
+                const videoElement = videoRefs.current[index];
+
+                if (!videoElement) return;
+
+                if (entry.isIntersecting) {
+                    // Mute and play if in view
+                    videoElement.muted = true;
+                    videoElement.play().catch(e => console.log("Video play interrupted:", e));
+                    setCurrentPlayingIndex(index);
+                } else {
+                    // Pause if not in view
+                    videoElement.pause();
+                    videoElement.currentTime = 0; // Reset video to start
+                    if (currentPlayingIndex === index) {
+                        setCurrentPlayingIndex(null);
+                    }
+                }
+            });
+        };
+
+        const observer = new IntersectionObserver(onIntersect, options);
+        reelRefs.current.forEach((ref) => {
+            if (ref) observer.observe(ref);
         });
-      };
 
-      const io = new IntersectionObserver(onIntersect, options);
-      reelRefs.current.forEach((r) => r && io.observe(r));
+        return () => observer.disconnect();
+    }, [videos, currentPlayingIndex]);
 
-      // Cleanup function to disconnect observer when component unmounts or videos change
-      return () => {
-        io.disconnect();
-      };
-    }, [videos]); // Dependency array updated to re-run this effect when 'videos' state changes
 
-    
+    // Handle manual video play/pause toggle
+    const handleVideoToggle = useCallback((index) => {
+        const videoElement = videoRefs.current[index];
+        if (videoElement) {
+            if (videoElement.paused) {
+                // Pause all other videos first
+                videoRefs.current.forEach((vid, i) => {
+                    if (i !== index && !vid.paused) {
+                        vid.pause();
+                        vid.currentTime = 0;
+                    }
+                });
+                videoElement.play().catch(e => console.log("Video play interrupted:", e));
+                setCurrentPlayingIndex(index);
+            } else {
+                videoElement.pause();
+                setCurrentPlayingIndex(null);
+            }
+        }
+    }, []);
 
     const handleLike = async (videoToLike) => {
-      const response = await axios.post(`${SERVER_URL}/api/food/like`, {foodId: videoToLike._id
-      }, { withCredentials: true });
-      if(response.data.like){
-        setVideos((prevVideos) =>
-          prevVideos.map((v) =>
-            v._id === videoToLike._id
-              ? { ...v, likeCount: (v.likeCount || 0) + 1 }
-              : v
-          )
-        );
-      } else {
-        setVideos((prevVideos) =>
-          prevVideos.map((v) =>
-            v._id === videoToLike._id
-              ? { ...v, likeCount: Math.max((v.likeCount || 1) - 1, 0) }
-              : v
-          )
-        );
-      }
+
+      const response = await axios.post(`${SERVER_URL}/api/food/like`, { foodId: videoToLike._id, token: cookies.token });
+        try {
+            if (response.data.like) {
+                setVideos((prevVideos) =>
+                    prevVideos.map((v) =>
+                        v._id === videoToLike._id ? { ...v, likeCount: (v.likeCount || 0) + 1, isLikedByUser: true } : v
+                    )
+                );
+            } else {
+                setVideos((prevVideos) =>
+                    prevVideos.map((v) =>
+                        v._id === videoToLike._id ? { ...v, likeCount: Math.max((v.likeCount || 1) - 1, 0), isLikedByUser: false } : v
+                    )
+                );
+            }
+        } catch (error) {
+            console.error('Error liking video:', error);
+            // Handle error, e.g., show a toast message
+        }
     };
 
-    const handleSave = async (video) => {
-      const response = await axios.post(`${SERVER_URL}/api/food/save`, {foodId: video._id
-      }, { withCredentials: true });
-      if(response.data.save){
-        setVideos((prevVideos) =>
-          prevVideos.map((v) =>
-            v._id === video._id ? { ...v, saves: (v.saves || 0) + 1 } : v
-          )
-        );
-      } else {
-        setVideos((prevVideos) =>
-          prevVideos.map((v) =>
-            v._id === video._id ? { ...v, saves: Math.max((v.saves || 1) - 1, 0) } : v
-          )
-        );
-      }
+    const handleSave = async (videoToSave) => {
+        try {
+            const response = await axios.post(`${SERVER_URL}/api/food/save`, { foodId: videoToSave._id, token: cookies.token });
+            if (response.data.save) {
+                setVideos((prevVideos) =>
+                    prevVideos.map((v) =>
+                        v._id === videoToSave._id ? { ...v, saves: (v.saves || 0) + 1, isSavedByUser: true } : v
+                    )
+                );
+            } else {
+                setVideos((prevVideos) =>
+                    prevVideos.map((v) =>
+                        v._id === videoToSave._id ? { ...v, saves: Math.max((v.saves || 1) - 1, 0), isSavedByUser: false } : v
+                    )
+                );
+            }
+        } catch (error) {
+            console.error('Error saving video:', error);
+            // Handle error
+        }
     };
 
     return (
-      <div className="home-container">
-        <Navigation />
-        <div className="reels-container" role="list">
-          {videos.map((v, i) => (
-            <Reel
-              key={v._id}
-              video={v}
-              index={i}
-              setReelRef={setReelRef}
-              setVideoRef={setVideoRef}
-              handleVideoToggle={handleVideoToggle}
-              handleLike={handleLike}
-              handleSave={handleSave}
-            />
-          ))}
+        <div className="home-container">
+            {/* <Navigation /> */} {/* Assuming Navigation is a separate component for top bar */}
+            <div className="reels-container" role="list">
+                {videos.map((v, i) => (
+                    <Reel
+                        key={v._id}
+                        video={v}
+                        index={i}
+                        setReelRef={el => setReelRef(el, i)}
+                        setVideoRef={el => setVideoRef(el, i)}
+                        handleVideoToggle={handleVideoToggle}
+                        handleLike={handleLike}
+                        handleSave={handleSave}
+                        isPlaying={currentPlayingIndex === i} // Pass isPlaying prop
+                    />
+                ))}
+            </div>
+
+            {/* Bottom Navigation */}
+            <nav className="bottom-nav">
+                <button
+                    className={`nav-btn ${location.pathname === "/" ? "active" : ""}`}
+                    onClick={() => navigate("/")}
+                    aria-label="Home"
+                >
+                    <FaHome />
+                    <span>Home</span>
+                </button>
+                <button
+                    className={`nav-btn ${location.pathname === "/saved" ? "active" : ""}`}
+                    onClick={() => navigate("/saved")}
+                    aria-label="Saved Videos"
+                >
+                    <FaBookmark />
+                    <span>Saved</span>
+                </button>
+            </nav>
         </div>
-
-        <div className="videos-container">
-          
-        </div>
-
-        {/* Bottom Navigation - Keep only Home and Saved */}
-        <nav className="bottom-nav">
-          <button
-            className={`nav-btn ${
-              location.pathname === "/" ? "active" : ""
-            }`}
-            onClick={() => navigate("/")}
-          >
-            <FaHome />
-            <span>Home</span>
-          </button>
-
-          <button
-            className={`nav-btn ${
-              location.pathname === "/saved" ? "active" : ""
-            }`}
-            onClick={() => navigate("/saved")}
-          >
-            <FaBookmark />
-            <span>Saved</span>
-          </button>
-        </nav>
-      </div>
     );
-  };
+};
 
-  export default Home;
+export default Home;
