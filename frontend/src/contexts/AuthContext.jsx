@@ -101,9 +101,9 @@ export const AuthProvider = ({ children, serverUrl }) => {
 
   const logout = async () => {
     try {
-      const endpoint = user?.type === 'user' 
-        ? `${serverUrl}/api/auth/user/logout`
-        : `${serverUrl}/api/auth/food-partner/logout`;
+      // const endpoint = user?.type === 'user' 
+      //   ? `${serverUrl}/api/auth/user/logout`
+      //   : `${serverUrl}/api/auth/food-partner/logout`;
       
       // await axios.get(endpoint);
       removeCookie('token');
