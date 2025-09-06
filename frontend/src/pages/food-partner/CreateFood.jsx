@@ -2,10 +2,12 @@ import React, { useState, useRef } from 'react';
 import '../../styles/createFood.css';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 const CreateFood = ({ SERVER_URL }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const { cookies } = useAuth();
   const videoRef = useRef(null);
   const navigate = useNavigate();
 
@@ -17,9 +19,16 @@ const CreateFood = ({ SERVER_URL }) => {
     if (videoRef.current.files[0]) {
       formData.append('video', videoRef.current.files[0]);
     }
+    formData.append('token', cookies.token);
 
-    const response = await axios.post(`${SERVER_URL}/api/food`, formData, { withCredentials: true });
-    // Reset form fields
+const response = await axios.post(
+  `${SERVER_URL}/api/food`,
+  formData,
+  {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }
+);
+    
     setName('');
     setDescription(''); 
     if (videoRef.current) {

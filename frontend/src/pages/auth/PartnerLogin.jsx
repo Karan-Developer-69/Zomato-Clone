@@ -1,6 +1,6 @@
  
 import '../../styles/auth.css';
-import { useNavigate } from 'react-router-dom';
+import { redirect, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useState } from 'react';
 
@@ -25,7 +25,6 @@ export default function PartnerLogin({SERVER_URL}) {
     }
 
     const result = await login(email, password, 'foodPartner');
-    
     if (result.success) {
       navigate('/create');
     } else {

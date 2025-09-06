@@ -21,9 +21,15 @@ async function authFoodPartnerMiddleware(req, res, next) {
 }
 
 async function authUserMiddleware(req, res, next) {
-    const token = req.body.token;
-    if (!token) {
-        return res.status(401).json({ message: 'Unauthorized' });
+    let token;
+    if(req.headers.authorization) {
+        token = req.headers.authorization.split(' ')[1];
+        if (!token) {
+            token = req.body.token
+            if (!token) {
+                return res.status(401).json({ message: 'Unauthorized' });
+            }
+        }   
     }
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);

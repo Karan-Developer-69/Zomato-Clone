@@ -5,22 +5,23 @@ export const useAuth = useAuthContext;
 
 // Custom hook for protected routes
 export const useRequireAuth = (redirectTo = '/user/login') => {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading, user,foodPartner } = useAuth();
   
   return {
     isAuthenticated,
     isLoading,
     user,
+    foodPartner,
     redirectTo
   };
 };
 
 // Custom hook for user-specific operations
 export const useUserAuth = () => {
-  const { user, isAuthenticated, login, register, logout } = useAuth();
+  const { user, isAuthenticated, login, register, logout, foodPartner } = useAuth();
   
-  const isUser = user?.type === 'user';
-  const isFoodPartner = user?.type === 'foodPartner';
+  const isUser = user && ture;
+  const isFoodPartner = foodPartner && true;
   
   return {
     user,

@@ -5,7 +5,11 @@ const saveModel = require('../models/save.model');
 const {v4:uuid} = require('uuid');
 
 async function createFood(req, res) {
-
+    console.log("REQ",req)
+    // console.log("FILE",req.file)
+    // console.log("FORM DATA",req.body.name)
+    // console.log("FOOD PARTNER",req.foodPartner)
+    // console.log("TOKEN",req.body.token)
     const fileUploadResult = await storageService.uploadFile(req.file.buffer, uuid());
 
     /* Dao file,validater layer missing !!! */

@@ -5,12 +5,14 @@
   import "../../styles/reels.css";
   import Reel from "../../components/Reel";
   import Navigation from "../../components/Navigation";
+import { useAuth } from "../../contexts/AuthContext";
   
 
   const Home = ({ SERVER_URL }) => {
     const [videos, setVideos] = useState([]);
     const videoRefs = useRef([]);
     const reelRefs = useRef([]);
+    const {cookies} = useAuth()
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -44,7 +46,11 @@
     // Fetch videos from API on component mount
     useEffect(() => {
       axios
-        .get(`${SERVER_URL}/api/food`, { withCredentials: true })
+        .get(`${SERVER_URL}/api/food`,{
+          headers: {
+            'Authorization': `Bearer ${cookies.token}`
+          }
+        } )
         .then((res) => {
           if (res.data && res.data.foodItems) {
             setVideos(res.data.foodItems);

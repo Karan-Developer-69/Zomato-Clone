@@ -2,7 +2,16 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { useCookies } from 'react-cookie';
 
-const AuthContext = createContext();
+const AuthContext = createContext({
+  user: null,
+  isAuthenticated: false,
+  isLoading: true,
+  cookies: null,
+  login: async () => {},
+  register: async () => {},
+  logout: async () => {},
+  checkAuthStatus: async () => {},
+});
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -17,7 +26,7 @@ export const AuthProvider = ({ children, serverUrl }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [cookies, setCookie, removeCookie] = useCookies(['token']);
-
+  
   // Configure axios defaults for credentials
   useEffect(() => {
     axios.defaults.withCredentials = true;
@@ -27,14 +36,14 @@ export const AuthProvider = ({ children, serverUrl }) => {
   useEffect(() => {
     checkAuthStatus();
   }, [serverUrl]);
-
+  
   const checkAuthStatus = async () => {
     try {
       setIsLoading(true);
       const response = await axios.post(`${serverUrl}/api/auth/status`,{token: cookies.token});
       
       if (response.data.isAuthenticated) {
-        setUser(response.data.user);
+        setUser(response.data.user || response.data.foodPartner);
         setIsAuthenticated(true);
       } else {
         setUser(null);
@@ -57,8 +66,8 @@ export const AuthProvider = ({ children, serverUrl }) => {
       
       const response = await axios.post(endpoint, { email, password });
       
-      if (response.data.user) {
-        setUser(response.data.user);
+      if (response.data.user || response.data.foodPartner) {
+        setUser(response.data.user || response.data.foodPartner);
         setIsAuthenticated(true);
         setCookie('token', response.data.token);
         return { success: true, data: response.data };
@@ -79,11 +88,10 @@ export const AuthProvider = ({ children, serverUrl }) => {
       const endpoint = userType === 'user' 
         ? `${serverUrl}/api/auth/user/register`
         : `${serverUrl}/api/auth/food-partner/register`;
-      
       const response = await axios.post(endpoint, userData);
       
-      if (response.data.user) {
-        setUser(response.data.user);
+      if (response.data.user || response.data.foodPartner) {
+        setUser(response.data.user || response.data.foodPartner);
         setIsAuthenticated(true);
         setCookie('token', response.data.token);
         return { success: true, data: response.data };
@@ -122,6 +130,7 @@ export const AuthProvider = ({ children, serverUrl }) => {
     login,
     register,
     logout,
+    cookies,
     checkAuthStatus
   };
 
